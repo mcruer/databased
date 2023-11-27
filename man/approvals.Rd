@@ -14,5 +14,7 @@ This function is a wrapper for `load_data()` that specifically retrieves the 'ap
 It loads the 'approvals' data object and coerces it into a tibble before returning.
 }
 \examples{
+\dontrun{
 approvals_data <- approvals()
+}
 }

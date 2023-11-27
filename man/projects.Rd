@@ -14,5 +14,7 @@ This function is a wrapper for `load_data()` that specifically retrieves the 'pr
 It loads the 'projects' data object and coerces it into a tibble before returning.
 }
 \examples{
+\dontrun{
 projects_data <- projects()
+}
 }

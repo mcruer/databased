@@ -1,32 +1,137 @@
-utils::globalVariables(c("path_database", "project_id", "date_data"))
+utils::globalVariables(c("project_id", "date_data"))
 
-#NOTE: THIS NEEDS REVIEW AND DOCUMENTATION!!!!
+#Option Names: databased.path
+
+#' Copy Database Path Setting to Clipboard
+#'
+#' This function copies a specific R options setting command to the clipboard.
+#' The command sets the `databased.path` option to a predefined path (`"S:/data/databased"`).
+#' This can be useful for quickly sharing or applying this setting in different R scripts
+#' or R sessions.
+#'
+#' @details
+#' The function utilizes the `clipr` package to interact with the system clipboard.
+#' It is designed to work in environments where clipboard access is available.
+#' The specific text copied to the clipboard is:
+#' `options(databased.path = "S:/data/databased")`.
+#'
+#' @return
+#' The function does not return a value but performs an action: copying text to the clipboard.
+#'
+#' @examples
+#' \dontrun{
+#'   options_to_clipboard() # Copies the options command to the clipboard
+#' }
+#'
+#' @export
+#'
+#' @importFrom clipr write_clip
+options_to_clipboard <- function() {
+  text_to_copy <- 'options(databased.path = "S:/data/databased")'
+  clipr::write_clip(text_to_copy)
+}
 
 
+#' Ensure Trailing Slash
+#'
+#' `confirm_slash` ensures that a given file path ends with a forward slash.
+#' This is useful for constructing file paths in a consistent manner, especially
+#' when working across different operating systems. If the path already ends with
+#' a forward slash, it remains unchanged.
+#'
+#' @param path A character string representing a file path.
+#'
+#' @return A character string of the file path, guaranteed to end with a forward slash.
+#'
+#' @examples
+#' confirm_slash("path/to/directory")
+#' confirm_slash("path/to/directory/")
+#'
+#' @export
+#'
+#' @importFrom stringr str_detect
+#' @importFrom stringr str_c
+confirm_slash <- function(path) {
+  if (!stringr::str_detect(path, "/$")) {
+    path <- stringr::str_c(path, "/")
+  }
+  path
+}
 
-path_databased <- "S:/data/databased/rda/"
+#path_databased <- "S:/data/databased/rda/"
 #path_database <- "S:/data/databased/rda/"
 #path_log_databse <- "S:/data/databased/log/"
 
+path_rda <- function(){
+  getOption("databased.path") %>%
+    confirm_slash() %>%
+    stringr::str_c("rda/")
+}
+
+path_log <- function() {
+  getOption("databased.path") %>%
+    confirm_slash() %>%
+    stringr::str_c("log/")
+}
+
 create_path_log <- function (log_name) {
-  stringr::str_c(path_databased, "log/", log_name, ".rda")
+  stringr::str_c(path_log(), log_name, ".rda")
 }
 
 create_path_data <- function (dataset_name) {
-  stringr::str_c(path_databased, "rda/", dataset_name, ".rda")
+  stringr::str_c(path_rda(), dataset_name, ".rda")
 }
 
+#' Load a Log File
+#'
+#' `get_log` loads a log file stored in R data format (`.rda`). It constructs the file path
+#' based on the provided log name and a base path set as an option. The function then
+#' loads the log data into the R environment. It is assumed that the log file contains
+#' an object with the same name as `log_name`.
+#'
+#' @param log_name The name of the log file to be loaded (without the `.rda` extension).
+#'
+#' @return The object stored in the log file, typically a data frame or a list.
+#'         This object should have the same name as `log_name`.
+#'
+#' @examples
+#' \dontrun{
+#'   get_log("example_log") # Loads 'example_log.rda' from the log directory
+#' }
+#'
+#' @export
+#'
+#' @importFrom stringr str_c
 get_log <- function (log_name){
   path_log <- create_path_log(log_name)
   load(path_log)
   get(log_name)
 }
 
+#' Append Entry to Log and Save
+#'
+#' The `log_it` function appends a new entry to an existing log and then saves
+#' the updated log back to its file. It relies on the `get_log` function to
+#' retrieve the current log and uses tidyverse functions for manipulation.
+#'
+#' @param log_entry A data frame or similar structure representing the new log entry to be appended.
+#' @param log_name The name of the log file (without the `.rda` extension) to which the log entry will be appended.
+#'
+#' @return The function does not return a value but updates the log file specified by `log_name`.
+#'
+#' @examples
+#' \dontrun{
+#'   new_entry <- tibble(timestamp = Sys.time(), message = "New log entry")
+#'   log_it(new_entry, "example_log")
+#' }
+#'
+#' @export
+#'
 log_it <- function (log_entry, log_name) {
 
   get_log (log_name) %>%
-    bind_rows(log_entry) %>%
-    pipe_assign(str_c (log_name))
+    dplyr::bind_rows(log_entry) %>%
+    gplyr::pipe_assign(str_c (log_name))
 
   # Use the object's name to save it, not the object itself
   save(list=log_name,
@@ -53,7 +158,7 @@ log_it <- function (log_entry, log_name) {
 database_it <- function (obj, envir = .GlobalEnv) {
   object_name <- deparse(substitute(obj))
   # Use the object's name to save it, not the object itself
-  save(list=object_name, file = create_path_data(objct_name), envir = envir)
+  save(list=object_name, file = create_path_data(object_name), envir = envir)
 }
 
 
@@ -69,7 +174,9 @@ database_it <- function (obj, envir = .GlobalEnv) {
 #' @return The specified data object.
 #' @export
 #' @examples
+#' \dontrun{
 #' load_data("approvals")
+#' }
 load_data <- function(data_name, extension = ".rda") {
   file_path <- create_path_data (data_name)
 
@@ -93,7 +200,9 @@ load_data <- function(data_name, extension = ".rda") {
 #' @return A tibble containing the 'projects' data.
 #' @export
 #' @examples
+#' \dontrun{
 #' projects_data <- projects()
+#' }
 projects <- function (){
   load_data("projects") |>
     tibble::tibble()
@@ -107,7 +216,9 @@ projects <- function (){
 #' @return A tibble containing the 'approvals' data.
 #' @export
 #' @examples
+#' \dontrun{
 #' approvals_data <- approvals()
+#' }
 approvals <- function(){
   load_data("approvals")|>
     tibble::tibble()

@@ -20,5 +20,7 @@ The path is combined with the data name and extension to locate the file.
 If the file or the specified data object within the file does not exist, the function stops with an error.
 }
 \examples{
+\dontrun{
 load_data("approvals")
+}
 }
