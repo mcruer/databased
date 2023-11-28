@@ -16,6 +16,7 @@ Imports:
     lubridate,
     magrittr,
     purrr,
+    readr,
     stringr,
     tibble,
     tidyr

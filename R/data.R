@@ -58,6 +58,58 @@ data_path <- function (path) {
   options(databased.path = path)
 }
 
+#' Set databased.path in .Rprofile
+#'
+#' Modifies the `.Rprofile` file in the user's home directory to set the `databased.path` option.
+#' This function ensures that `databased.path` is correctly set for future R sessions.
+#'
+#' @param path A character string specifying the desired path for the `databased.path` option.
+#'
+#' @details
+#' - This function alters the `.Rprofile` file located in the user's home directory.
+#' - If the `.Rprofile` file does not exist, it will be created with the necessary setting.
+#' - If the file exists, the function will append or modify the `databased.path` setting
+#'   while preserving other settings.
+#' - The `data_path()` function can be used as an alternative to set the `databased.path`
+#'   option for the current session without altering the `.Rprofile` file.
+#' - Note that a `.Rprofile` file in the project directory will take precedence over the
+#'   settings made by this function.
+#'
+#' IMPORTANT
+#' - Modifying the `.Rprofile` can impact the behavior of all R sessions for the user.
+#'   Ensure that you understand the implications of these changes.
+#' - Consider backing up your `.Rprofile` before making automated modifications.
+#'
+#' @examples
+#' \dontrun{
+#' # Set the databased.path in .Rprofile
+#' set_databased_path("path/to/databased")
+#' }
+#'
+#' @export
+set_databased_path <- function(path){
+  rprofile_path <- stringr::str_c(path.expand("~") %>% confirm_slash(),
+                                  ".Rprofile")
+
+  text_to_add <- stringr::str_c("options(databased.path = '",
+                                path %>% confirm_slash(),
+                                "')")
+
+
+  file_exists <- file.exists(rprofile_path)
+
+  if(!file_exists) {
+    readr::write_lines(text_to_add, file = rprofile_path)
+
+  } else {
+    c (readr::read_lines(rprofile_path) %>%
+         gplyr::str_filter("databased.path",
+                           negate = TRUE),
+       text_to_add) %>%
+      readr::write_lines(file = rprofile_path)
+  }
+
+}
 
 
 
