@@ -2,6 +2,7 @@
 
 export(approvals)
 export(confirm_slash)
+export(data_path)
 export(database_it)
 export(get_log)
 export(load_data)

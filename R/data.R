@@ -32,6 +32,35 @@ options_to_clipboard <- function() {
 }
 
 
+#' Set the Default Data Path for databased
+#'
+#' This function sets the default data path for the `databased` package by updating the
+#' `databased.path` option. This path is used as the default location to read from and write to data files.
+#'
+#' @param path A character string specifying the file path to be set as the default data path.
+#'
+#' @details
+#' `data_path` is a utility function that modifies the global option `databased.path`.
+#' This option is used by the `databased` package to determine the default directory
+#' for data operations. Setting this path is especially useful for ensuring
+#' consistency in file locations across different sessions and scripts.
+#'
+#' It's important to note that this function changes a global option, and the set path
+#' remains in effect for the duration of the R session or until it's modified again.
+#'
+#' @examples
+#' \dontrun{
+#' data_path("path/to/your/data")
+#' }
+#'
+#' @export
+data_path <- function (path) {
+  options(databased.path = path)
+}
+
+
+
+
 #' Ensure Trailing Slash
 #'
 #' `confirm_slash` ensures that a given file path ends with a forward slash.
