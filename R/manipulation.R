@@ -89,8 +89,8 @@ snapshot_data <- function (df, as_of = NULL, unique_identifier = project_id, dat
   }
 
   df <- df %>%
-    tidyr::fill(dplyr::everything(), .direction = "down") %>%
     dplyr::group_by({{unique_identifier}}) %>%
+    tidyr::fill(dplyr::everything(), .direction = "down") %>%
     dplyr::filter({{date_data}} == max({{date_data}})) %>%
     dplyr::ungroup()
 
