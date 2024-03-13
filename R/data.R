@@ -2,62 +2,6 @@ utils::globalVariables(c("project_id", "date_data"))
 
 #Option Names: databased.path
 
-#' Copy Database Path Setting to Clipboard
-#'
-#' This function copies a specific R options setting command to the clipboard.
-#' The command sets the `databased.path` option to a predefined path (`"S:/data/databased"`).
-#' This can be useful for quickly sharing or applying this setting in different R scripts
-#' or R sessions.
-#'
-#' @details
-#' The function utilizes the `clipr` package to interact with the system clipboard.
-#' It is designed to work in environments where clipboard access is available.
-#' The specific text copied to the clipboard is:
-#' `options(databased.path = "S:/data/databased")`.
-#'
-#' @return
-#' The function does not return a value but performs an action: copying text to the clipboard.
-#'
-#' @examples
-#' \dontrun{
-#'   options_to_clipboard() # Copies the options command to the clipboard
-#' }
-#'
-#' @export
-#'
-#' @importFrom clipr write_clip
-options_to_clipboard <- function() {
-  text_to_copy <- 'options(databased.path = "S:/data/databased")'
-  clipr::write_clip(text_to_copy)
-}
-
-
-#' Set the Default Data Path for databased
-#'
-#' This function sets the default data path for the `databased` package by updating the
-#' `databased.path` option. This path is used as the default location to read from and write to data files.
-#'
-#' @param path A character string specifying the file path to be set as the default data path.
-#'
-#' @details
-#' `data_path` is a utility function that modifies the global option `databased.path`.
-#' This option is used by the `databased` package to determine the default directory
-#' for data operations. Setting this path is especially useful for ensuring
-#' consistency in file locations across different sessions and scripts.
-#'
-#' It's important to note that this function changes a global option, and the set path
-#' remains in effect for the duration of the R session or until it's modified again.
-#'
-#' @examples
-#' \dontrun{
-#' data_path("path/to/your/data")
-#' }
-#'
-#' @export
-data_path <- function (path) {
-  options(databased.path = path)
-}
-
 #' Set databased.path in .Rprofile
 #'
 #' Modifies the `.Rprofile` file in the user's home directory to set the `databased.path` option.
@@ -111,7 +55,31 @@ set_databased_path <- function(path){
 
 }
 
-
+#' Set the Default Data Path for databased
+#'
+#' This function sets the default data path for the `databased` package by updating the
+#' `databased.path` option. This path is used as the default location to read from and write to data files.
+#'
+#' @param path A character string specifying the file path to be set as the default data path.
+#'
+#' @details
+#' `data_path` is a utility function that modifies the global option `databased.path`.
+#' This option is used by the `databased` package to determine the default directory
+#' for data operations. Setting this path is especially useful for ensuring
+#' consistency in file locations across different sessions and scripts.
+#'
+#' It's important to note that this function changes a global option, and the set path
+#' remains in effect for the duration of the R session or until it's modified again.
+#'
+#' @examples
+#' \dontrun{
+#' data_path("path/to/your/data")
+#' }
+#'
+#' @export
+data_path <- function (path) {
+  options(databased.path = path)
+}
 
 #' Ensure Trailing Slash
 #'
@@ -153,6 +121,101 @@ path_log <- function() {
   getOption("databased.path") %>%
     confirm_slash() %>%
     stringr::str_c("log/")
+}
+
+#' Generate a Tibble of File Information
+#'
+#' This internal function generates a data frame (tibble) that contains the name of each file in the specified directory,
+#' along with the path and some metadata, filtered by a particular subdirectory and file type.
+#'
+#' @param x A string specifying the subdirectory within the base path to search in.
+#' @param path A string indicating a sub-path within `x` to further narrow down the file search.
+#' @param file_type A string indicating the type of the files to include represented by their extension.
+#' @param recursive A logical indicating whether to perform a recursive search in subdirectories.
+#' @param filter_out_tilda A logical indicating whether to filter out files starting with a tilde (~), which are often temporary or backup files.
+#' @return A tibble with each file and its associated metadata.
+#' @export
+#' @examples
+#' \dontrun{
+#' file_tibble_x("subdir")
+#' }
+file_tibble_x <- function(
+    x,
+    path = "",
+    file_type = ".",
+    recursive = FALSE,
+    filter_out_tilda = TRUE
+){
+  getOption("databased.path") %>%
+    confirm_slash() %>%
+    stringr::str_c(x) %>%
+    confirm_slash() %>%
+    stringr::str_c(path) %>%
+    confirm_slash() %>%
+    templaforms::file_tibble(
+      file_type = file_type,
+      recursive = recursive,
+      filter_out_tilda = filter_out_tilda)
+}
+
+#' Generate a Tibble of Files from the 'raw' Subdirectory
+#'
+#' This function is a wrapper for `file_tibble_x` preset to search in the 'raw' subdirectory.
+#'
+#' @inheritParams file_tibble_x
+#' @return A tibble with each file in the 'raw' subdirectory and its associated metadata.
+#' @export
+#' @examples
+#' \dontrun{
+#' file_tibble_raw()
+#' }
+file_tibble_raw <- function(
+    path = "",
+    file_type = ".",
+    recursive = FALSE,
+    filter_out_tilda = TRUE
+){
+  file_tibble_x("raw", path, file_type, recursive, filter_out_tilda)
+}
+
+#' Generate a Tibble of .rda Files
+#'
+#' This function is a wrapper for `file_tibble_x` preset to search for '.rda' files.
+#'
+#' @inheritParams file_tibble_x
+#' @return A tibble with each '.rda' file and its associated metadata.
+#' @export
+#' @examples
+#' \dontrun{
+#' file_tibble_data()
+#' }
+file_tibble_data <- function(
+    path = "",
+    file_type = ".",
+    recursive = FALSE,
+    filter_out_tilda = TRUE
+){
+  file_tibble_x("rda", path, file_type, recursive, filter_out_tilda)
+}
+
+#' Generate a Tibble of Log Files
+#'
+#' This function is a wrapper for `file_tibble_x` preset to search for log files.
+#'
+#' @inheritParams file_tibble_x
+#' @return A tibble with each log file and its associated metadata.
+#' @export
+#' @examples
+#' \dontrun{
+#' file_tibble_log()
+#' }
+file_tibble_log <- function(
+    path = "",
+    file_type = ".",
+    recursive = FALSE,
+    filter_out_tilda = TRUE
+){
+  file_tibble_x("log", path, file_type, recursive, filter_out_tilda)
 }
 
 create_path_log <- function (log_name) {
@@ -303,4 +366,35 @@ projects <- function (){
 approvals <- function(){
   load_data("approvals")|>
     tibble::tibble()
+}
+
+
+
+#' Copy Database Path Setting to Clipboard
+#'
+#' This function copies a specific R options setting command to the clipboard.
+#' The command sets the `databased.path` option to a predefined path (`"S:/data/databased"`).
+#' This can be useful for quickly sharing or applying this setting in different R scripts
+#' or R sessions.
+#'
+#' @details
+#' The function utilizes the `clipr` package to interact with the system clipboard.
+#' It is designed to work in environments where clipboard access is available.
+#' The specific text copied to the clipboard is:
+#' `options(databased.path = "S:/data/databased")`.
+#'
+#' @return
+#' The function does not return a value but performs an action: copying text to the clipboard.
+#'
+#' @examples
+#' \dontrun{
+#'   options_to_clipboard() # Copies the options command to the clipboard
+#' }
+#'
+#' @export
+#'
+#' @importFrom clipr write_clip
+options_to_clipboard <- function() {
+  text_to_copy <- 'options(databased.path = "S:/data/databased")'
+  clipr::write_clip(text_to_copy)
 }
