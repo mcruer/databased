@@ -17,8 +17,9 @@ Imports:
     magrittr,
     purrr,
     readr,
+    reformR,
+    rlang,
     stringr,
-    templaforms,
     tibble,
     tidyr
 RoxygenNote: 7.2.3

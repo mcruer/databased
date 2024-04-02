@@ -152,7 +152,7 @@ file_tibble_x <- function(
     confirm_slash() %>%
     stringr::str_c(path) %>%
     confirm_slash() %>%
-    templaforms::file_tibble(
+    file_tibble(
       file_type = file_type,
       recursive = recursive,
       filter_out_tilda = filter_out_tilda)
