@@ -13,13 +13,14 @@ Imports:
     clipr,
     dplyr,
     gplyr,
+    janitor,
     lubridate,
     magrittr,
+    openxlsx,
     purrr,
     readr,
-    reformR,
     rlang,
     stringr,
     tibble,
     tidyr
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
